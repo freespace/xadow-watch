@@ -48,9 +48,12 @@ void setup() {
   delay(3000);
   
   oled.fillScreen(COLOR_BLACK);
-  watch_update();
+  watch_show(0xFF);  
 }
 
 void loop() {
-  watch_show();
+  uint8_t changes = watch_tick();
+  if (changes) {
+      watch_show(changes);
+  }
 }
