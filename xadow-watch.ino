@@ -29,7 +29,20 @@ char _sbuf2[64];
 uint8_t logbat = 0;
 uint16_t eeaddr = 1;
 
+uint16_t now = 0;
+uint16_t checkpoint;
+
+
+typedef enum {
+  SCREEN_WATCH,
+  SCREEN_STATUS,
+} Screen;
+
+Screen currentScreen;
+
 void setup() {
+  pinMode(10, INPUT);
+
   Xadow.init();
   //Xadow.greenLed(LEDON);
 
@@ -37,29 +50,28 @@ void setup() {
   oled.fillScreen(COLOR_BLACK);
   oled.drawString("BOOTING", (RGB_OLED_WIDTH-FONT_X*6)/2, RGB_OLED_HEIGHT/2-FONT_Y/2, 1, COLOR_BLUE);
   delay(1000);
+  oled.fillScreen(COLOR_BLACK);
   
   menu_init();
   status_init();
-  watch_init();
+  watch_init(now);
   
   status_show();
   
-  delay(3000);
+  delay(1000);
   
   menu_show(test_menu);
   
-  delay(3000);
+  delay(1000);
   
   oled.fillScreen(COLOR_BLACK);
   watch_show(0xFF);  
 
-  Serial.begin(9600);
-  if (EEPROM[0] != 0x03) {
-    EEPROM[0] = 0x03;
+  if (EEPROM[0] != 0x05) {
+    EEPROM[0] = 0x05;
     logbat = 1;
-
-    Serial.println("Battery log started");
   } else {
+    Serial.begin(9600);
     Serial.println("Battery log detected, not overwriting");
     for (eeaddr = 1; eeaddr < 1024; ++eeaddr) {
       Serial.println(EEPROM[eeaddr], DEC);
@@ -73,6 +85,10 @@ void setup() {
   power_timer1_disable();
   power_timer2_disable();
   power_timer3_disable();
+
+  now = 0;
+  checkpoint = millis();
+  currentScreen = SCREEN_WATCH;
 }
 
 void loop() {
@@ -80,20 +96,44 @@ void loop() {
 
   // sleep for a bit to save power. This is OK b/c timer0 which provides
   // millis is not disabled
-  Xadow.goToSleep(SLEEP_MODE_IDLE, 100);
+  Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, 200);
 
   power_spi_enable();
-  uint8_t changes = watch_tick(millis());
-  if (changes) {
-    watch_show(changes);
-    //status_show();
-    // log voltage every minute
-    if (changes >= 2 && logbat) {
-      if (eeaddr < 1024) {
-        uint8_t batvol = Xadow.getBatVol()*10;
-        EEPROM[eeaddr] = batvol;
-        eeaddr += 1;
-      }
+  uint8_t changes = watch_tick(now);
+
+  Screen nextscreen = currentScreen;
+
+  if (digitalRead(10) == LOW) {
+    nextscreen = SCREEN_STATUS;
+  } else {
+    nextscreen = SCREEN_WATCH;
+  }
+
+  if (nextscreen != currentScreen) {
+    oled.fillScreen(COLOR_BLACK);
+    currentScreen = nextscreen;
+  }
+
+  switch(nextscreen) {
+    case SCREEN_STATUS:
+      status_show();
+      delay(1000);
+      break;
+
+    case SCREEN_WATCH:
+      watch_show(changes);
+      break; 
+  }
+
+  if (changes >= 2 && logbat) {
+    if (eeaddr < 1024) {
+      uint8_t batvol = Xadow.getBatVol()*10;
+      EEPROM[eeaddr] = batvol;
+      eeaddr += 1;
     }
   }
+
+  uint16_t t = millis();
+  now += millis() - checkpoint + 200;
+  checkpoint = t;
 }
