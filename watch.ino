@@ -7,7 +7,7 @@ typedef struct {
   uint8_t hours;
   uint8_t month;
   uint8_t day;
-} WatchState;
+} Watch_t;
 
 uint8_t _watch_days_per_month[] = {
   31, // jan
@@ -24,10 +24,10 @@ uint8_t _watch_days_per_month[] = {
   31, // dec
 };
 
-WatchState _watch_state = {0};
+Watch_t Watch = {0};
 
 void watch_init(uint16_t now) {
-  _watch_state.next_second_millis = now;
+  Watch.next_second_millis = now;
 }
 
 /**
@@ -39,17 +39,17 @@ whatever is returned by watch_tick() for optimised update of watch face.
 
 If 0 is passed in, nothing happens.
 */
-void watch_show(uint8_t changes) { 
+void watch_show(uint8_t changes) {
   if (changes == 0) return;
-  
-  uint8_t seconds = _watch_state.seconds;
-  uint8_t minutes = _watch_state.minutes;
-  uint8_t hours = _watch_state.hours;
-  uint8_t day = _watch_state.day;
-  uint8_t month = _watch_state.month;  
-  
+
+  uint8_t seconds = Watch.seconds;
+  uint8_t minutes = Watch.minutes;
+  uint8_t hours = Watch.hours;
+  uint8_t day = Watch.day;
+  uint8_t month = Watch.month;
+
   uint8_t xpos = 0, ypos = 0;
-  
+
   uint8_t toclear;
   switch(changes) {
      case 1:
@@ -64,12 +64,12 @@ void watch_show(uint8_t changes) {
        toclear = 8;
        break;
   }
-  
+
   uint8_t clearwidth = RGB_OLED_WIDTH*toclear/8;
   oled.clearWindow(RGB_OLED_WIDTH-clearwidth, ypos, RGB_OLED_WIDTH, FONT_Y*2);
-  
+
   sprintf(_sbuf, "%02d:%02d:%02d", hours, minutes, seconds);
-  oled.drawString(_sbuf, xpos, ypos, FONT_SIZE*2, WATCH_COLOR);  
+  oled.drawString(_sbuf, xpos, ypos, FONT_SIZE*2, WATCH_COLOR);
 }
 
 /**
@@ -96,55 +96,55 @@ Note that this kind of time keeping on the Xadow has an error of about 1000 ppm,
 is around 30 seconds over 8 hours.
 */
 uint8_t watch_tick (uint16_t now) {
-  int16_t elapsed = now - _watch_state.next_second_millis;
+  int16_t elapsed = now - Watch.next_second_millis;
 
   if (elapsed > 0) {
-    _watch_state.next_second_millis += 1000;
-    
-    uint8_t seconds = _watch_state.seconds;
-    uint8_t minutes = _watch_state.minutes;
-    uint8_t hours = _watch_state.hours;
-    uint8_t day = _watch_state.day;
-    uint8_t month = _watch_state.month;
-  
+    Watch.next_second_millis += 1000;
+
+    uint8_t seconds = Watch.seconds;
+    uint8_t minutes = Watch.minutes;
+    uint8_t hours = Watch.hours;
+    uint8_t day = Watch.day;
+    uint8_t month = Watch.month;
+
     uint8_t changes = 1;
-    
+
     seconds += 1;
     if (seconds >= 60) {
       seconds = 0;
       minutes += 1;
       changes += 1;
     }
-    
+
     if (minutes >= 60) {
       minutes = 0;
       hours += 1;
       changes += 1;
     }
-    
+
     if (hours >= 24) {
       hours = 0;
       day += 1;
-      changes += 1;        
+      changes += 1;
     }
-    
+
     if (day >= _watch_days_per_month[month]) {
       day = 0;
       month += 1;
-      changes += 1;        
+      changes += 1;
     }
-    
+
     if (month >= 12) {
       month = 0;
       changes += 1;
     }
-  
-    _watch_state.seconds = seconds;
-    _watch_state.minutes = minutes;  
-    _watch_state.hours = hours;
-    _watch_state.day = day;
-    _watch_state.month = month;
-    
+
+    Watch.seconds = seconds;
+    Watch.minutes = minutes;
+    Watch.hours = hours;
+    Watch.day = day;
+    Watch.month = month;
+
     return changes;
   } else return 0;
 }
