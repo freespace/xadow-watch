@@ -26,8 +26,8 @@ uint8_t _watch_days_per_month[] = {
 
 WatchState _watch_state = {0};
 
-void watch_init() {
-  _watch_state.next_second_millis = millis() + 1000;
+void watch_init(uint16_t now) {
+  _watch_state.next_second_millis = now;
 }
 
 /**
@@ -36,8 +36,12 @@ to update time keeping!
 
 To redraw the entire watch face, pass in changes = 0xff. Otherwise pass in
 whatever is returned by watch_tick() for optimised update of watch face.
+
+If 0 is passed in, nothing happens.
 */
 void watch_show(uint8_t changes) { 
+  if (changes == 0) return;
+  
   uint8_t seconds = _watch_state.seconds;
   uint8_t minutes = _watch_state.minutes;
   uint8_t hours = _watch_state.hours;
