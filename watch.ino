@@ -72,14 +72,17 @@ void watch_show(uint8_t changes) {
 This function performs time keeping. To draw the watch face call
 watch_show().
 
+  now:  the number of milliseconds since some epoch which uniquely identifies the
+        current time
+
 This function returns an integer indiciating the number of changed counters:
 
-0 - no change
-1 - seconds
-2 - minutes
-3 - hours
-4 - day
-5 - month
+  0 - no change
+  1 - seconds
+  2 - minutes
+  3 - hours
+  4 - day
+  5 - month
 
 Because all changes start with seconds and propagate forward, a change in a high
 value counter implies all counter below it have also changed. e.g. if 2 is returned,
@@ -88,8 +91,9 @@ then it is implied that seconds and minutes have also changed.
 Note that this kind of time keeping on the Xadow has an error of about 1000 ppm, which
 is around 30 seconds over 8 hours.
 */
-uint8_t watch_tick () {
-  int16_t elapsed = millis() - _watch_state.next_second_millis;
+uint8_t watch_tick (uint16_t now) {
+  int16_t elapsed = now - _watch_state.next_second_millis;
+
   if (elapsed > 0) {
     _watch_state.next_second_millis += 1000;
     
