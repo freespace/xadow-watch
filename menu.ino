@@ -6,9 +6,9 @@ typedef void (*menu_item_selected)(uint8_t selected);
 typedef struct {
   char **current_items;
   uint8_t selected_item_index;
-} MenuState;
+} Menu_t;
 
-MenuState _menu_state = {NULL, 0};
+Menu_t Menu = {NULL, 0};
 
 void menu_init() {
 }
@@ -29,20 +29,19 @@ void menu_show(char *items[]) {
   uint8_t idx;
   uint8_t xpos = LEFT_GUTTER_SIZE, ypos = 0;
   uint16_t item_color;
-  
-  _menu_state.current_items = items;  
+
+  Menu.current_items = items;
   oled.fillScreen(COLOR_BLACK);
-  
+
   for (idx = 0; items[idx]; ++idx) {
     item_color = MENU_COLOR_DEFAULT;
-    if (idx == _menu_state.selected_item_index) {
-      item_color = MENU_COLOR_SELECTED;      
+    if (idx == Menu.selected_item_index) {
+      item_color = MENU_COLOR_SELECTED;
       oled.drawChar('>', 0, ypos, FONT_SIZE, item_color);
     }
-      
+
     oled.drawString(items[idx], xpos, ypos, FONT_SIZE, item_color);
-    
-    ypos += LINE_SPACING;
+
+    ypos += LINE_HEIGHT;
   }
 }
-
