@@ -51,6 +51,7 @@ void setup() {
   menu_init();
   status_init();
   watch_init(now);
+  batlog_init(0x33);
 
   status_show();
 
@@ -68,9 +69,6 @@ void setup() {
   oled.drawString("then press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
   while(digitalRead(10) == HIGH);;
 
-  now = 0;
-  checkpoint = millis();
-
   power_twi_disable();
   power_usart1_disable();
   power_usb_disable();
@@ -78,6 +76,9 @@ void setup() {
   power_timer1_disable();
   power_timer2_disable();
   power_timer3_disable();
+
+  now = 0;
+  checkpoint = millis();
 }
 
 void loop() {
@@ -108,7 +109,7 @@ void loop() {
   switch(nextscreen) {
     case SCREEN_STATUS:
       status_show();
-      delay(1000);
+      delay(3000);
       break;
 
     case SCREEN_WATCH:
@@ -117,6 +118,6 @@ void loop() {
   }
 
   uint16_t t = millis();
-  now += millis() - checkpoint + 200;
+  now += t - checkpoint + 200;
   checkpoint = t;
 }
