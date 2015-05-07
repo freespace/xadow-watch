@@ -5,11 +5,15 @@ typedef struct {
 
 BatLog_t BatLog = {0};
 
-void batlog_init() {
+/**
+ * cookie value is written to EEPROM[0], and used to avoid overwriting
+ * existing logs. To start a new log, pass in a new cookie value
+ */ 
+void batlog_init(uint8_t cookie) {
   BatLog.eeaddr = 1;
 
-  if (EEPROM[0] != 0x05) {
-    EEPROM[0] = 0x05;
+  if (EEPROM[0] != cookie) {
+    EEPROM[0] = cookie;
     // filled the log with 0xFF so we know later when the log stops.
     for (uint16_t addr = 1; addr < 1024; ++addr) {
       EEPROM[addr] = 0xFF;
@@ -18,8 +22,9 @@ void batlog_init() {
   } else {
     Serial.begin(9600);
 
-    delay(3000);
-    Serial.println("Battery log detected, not overwriting");
+    oled.drawString("Press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
+    oled.drawString("to print batlog", 0, 0, FONT_SIZE, COLOR_RED);
+    while(digitalRead(10) == HIGH);;
 
     for (uint16_t eeaddr = 1; eeaddr < 1024; ++eeaddr) {
       Serial.print(eeaddr, DEC);
