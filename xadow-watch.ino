@@ -41,7 +41,6 @@ void setup() {
   pinMode(10, INPUT);
 
   Xadow.init();
-  //Xadow.greenLed(LEDON);
 
   oled.init();
   oled.fillScreen(COLOR_BLACK);
@@ -69,13 +68,7 @@ void setup() {
   oled.drawString("then press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
   while(digitalRead(10) == HIGH);;
 
-  power_twi_disable();
-  power_usart1_disable();
-  power_usb_disable();
-  power_adc_disable();
-  power_timer1_disable();
-  power_timer2_disable();
-  power_timer3_disable();
+  mcu_reduce_features();
 
   now = 0;
   checkpoint = millis();
@@ -84,9 +77,20 @@ void setup() {
 void loop() {
   power_spi_disable();
 
-  // sleep for a bit to save power. This is OK b/c timer0 which provides
-  // millis is not disabled
-  Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, 200);
+  if (Xadow.getChrgState() == NOCHARGE) {
+    // when on battery power disable usb and uart and
+    // sleep for 200 ms
+    mcu_disable_usbserial();
+    Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, 200);
+    // take into account the fact millis isn't ticking over
+    // during sleep
+    now += 200;
+  } else {
+    // otherwise simulate sleep using delay and enable
+    // usb
+    mcu_enable_usbserial();
+    delay(200);
+  }
 
   power_spi_enable();
   uint8_t changes = watch_tick(now);
@@ -117,7 +121,8 @@ void loop() {
       break;
   }
 
+
   uint16_t t = millis();
-  now += t - checkpoint + 200;
+  now += t - checkpoint;
   checkpoint = t;
 }
