@@ -6,8 +6,8 @@ void status_init() {
 void status_show() {
   uint8_t ypos = 0;
 
-  dtostrf(Xadow.getBatVol(), 1, 1, _sbuf2);
-  sprintf(_sbuf, "Battery: %sV", _sbuf2);
+  uint8_t batv = mcu_get_battery_voltage();
+  sprintf(_sbuf, "Battery: %d.%dV", batv/10, batv%10);
   oled.drawString(_sbuf, 0, ypos, FONT_SIZE, STATUS_COLOR);
 
   ypos += LINE_HEIGHT;
