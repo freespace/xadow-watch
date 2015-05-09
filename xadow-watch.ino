@@ -25,7 +25,7 @@ SSD1331 oled = SSD1331(cs, dc, mosi, sclk);
 
 char *test_menu[] = {"hello", "world", "here be", "dragons", NULL};
 
-char _sbuf[64];
+char _sbuf[256];
 char _sbuf2[64];
 
 uint16_t now = 0;
@@ -53,6 +53,7 @@ void setup() {
   status_init();
   watch_init(now);
   batlog_init(0x33);
+  sync_init();
 
   oled.fillScreen(COLOR_BLACK);
 
@@ -75,6 +76,7 @@ void loop() {
     // when on battery power disable usb and uart and
     // sleep for 200 ms
     mcu_disable_usbserial();
+
     Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, SLEEP_TIME_MS);
     // take into account the fact millis isn't ticking over
     // during sleep
@@ -83,6 +85,8 @@ void loop() {
     // otherwise simulate sleep using delay and enable
     // usb
     mcu_enable_usbserial();
+    sync_listen();
+
     delay(SLEEP_TIME_MS);
   }
 
