@@ -20,22 +20,42 @@ void batlog_init(uint8_t cookie) {
     }
     BatLog.logbat = 1;
   } else {
-    Serial.begin(9600);
 
-    oled.drawString("Press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
-    oled.drawString("to print batlog", 0, 0, FONT_SIZE, COLOR_RED);
-    while(digitalRead(10) == HIGH);;
+    uint8_t ypos = 0;
+    oled.drawString("Press WAKE", 0, ypos, FONT_SIZE, COLOR_RED);
+    ypos += LINE_HEIGHT;
+    oled.drawString("to print batlog", 0, ypos, FONT_SIZE, COLOR_RED);
+    ypos += LINE_HEIGHT;
 
-    for (uint16_t eeaddr = 1; eeaddr < 1024; ++eeaddr) {
-      Serial.print(eeaddr, DEC);
-      Serial.print(" ");
-      Serial.println(EEPROM[eeaddr], DEC);
-      delay(10);
+    uint16_t startt = millis();
+    uint8_t printlog = 1;
 
-      // no need to print the entire log
-      if (EEPROM[eeaddr] == 0xFF) break;
+    while(digitalRead(10) == HIGH) {
+      uint16_t diff = millis() - startt;
+      if (diff> 3000) {
+        printlog = 0;
+        break;
+      } else {
+        oled.drawString("\x80", 0, ypos, FONT_SIZE, COLOR_BLACK);
+        sprintf(_sbuf, "%d", 3-diff/1000);
+        oled.drawString(_sbuf, 0, ypos, FONT_SIZE, COLOR_RED);
+        delay(250);
+      }
     }
-    delay(3000);
+
+    if (printlog) {
+      Serial.begin(9600);
+      delay(100);
+      for (uint16_t eeaddr = 1; eeaddr < 1024; ++eeaddr) {
+        Serial.print(eeaddr, DEC);
+        Serial.print(" ");
+        Serial.println(EEPROM[eeaddr], DEC);
+        delay(10);
+
+        // no need to print the entire log
+        if (EEPROM[eeaddr] == 0xFF) break;
+      }
+    }
   }
 }
 
