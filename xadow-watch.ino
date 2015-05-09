@@ -10,14 +10,16 @@
 // These are arduino pin definitions. Note that on leonardo
 // boards MOSI and sclk cannot be directly used, and hence
 // D16 and D15 is a thing only with the Xadow board
-#define cs       (A5)
-#define dc       (3)
-#define mosi     (16)
-#define sclk     (15)
+#define cs                  (A5)
+#define dc                  (3)
+#define mosi                (16)
+#define sclk                (15)
 
 #define LEFT_GUTTER_SIZE    (FONT_X)
 #define FONT_SIZE           (1)
 #define LINE_HEIGHT         (FONT_SIZE*FONT_Y+4)
+
+#define SLEEP_TIME_MS       (250)
 
 SSD1331 oled = SSD1331(cs, dc, mosi, sclk);
 
@@ -52,14 +54,6 @@ void setup() {
   watch_init(now);
   batlog_init(0x33);
 
-  status_show();
-
-  delay(1000);
-
-  menu_show(test_menu);
-
-  delay(1000);
-
   oled.fillScreen(COLOR_BLACK);
 
   currentScreen = SCREEN_OTHER;
@@ -81,15 +75,15 @@ void loop() {
     // when on battery power disable usb and uart and
     // sleep for 200 ms
     mcu_disable_usbserial();
-    Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, 200);
+    Xadow.goToSleep(SLEEP_MODE_PWR_DOWN, SLEEP_TIME_MS);
     // take into account the fact millis isn't ticking over
     // during sleep
-    now += 200;
+    now += SLEEP_TIME_MS;
   } else {
     // otherwise simulate sleep using delay and enable
     // usb
     mcu_enable_usbserial();
-    delay(200);
+    delay(SLEEP_TIME_MS);
   }
 
   power_spi_enable();
