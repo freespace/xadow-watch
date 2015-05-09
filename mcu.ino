@@ -9,6 +9,8 @@ void mcu_reduce_features() {
 }
 
 void mcu_disable_usbserial() {
+  Serial.end();
+
   power_usart1_disable();
   power_usb_disable();
   Xadow.greenLed(LEDOFF);
@@ -22,6 +24,8 @@ void mcu_enable_usbserial() {
   power_usart1_enable();
   power_usb_enable();
   Xadow.greenLed(LEDON);
+
+  Serial.begin(9600);
 }
 
 /**
