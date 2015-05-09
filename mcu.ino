@@ -23,3 +23,15 @@ void mcu_enable_usbserial() {
   power_usb_enable();
   Xadow.greenLed(LEDON);
 }
+
+/**
+ * Returns voltage in .1 volt resolution.
+ * 42 is therefore 4.2 volts
+ */
+uint8_t mcu_get_battery_voltage() {
+  power_adc_enable();
+  delay(1);
+  uint8_t ret = Xadow.getBatVol()*10;
+  power_adc_disable();
+  return ret;
+}
