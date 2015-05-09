@@ -19,7 +19,9 @@ void batlog_init(uint8_t cookie) {
       EEPROM[addr] = 0xFF;
     }
     BatLog.logbat = 1;
-  } else {
+  } else if (Xadow.getChrgState() != NOCHARGE) {
+    // if we are connected to USB then print charge log
+    mcu_enable_usbserial();
 
     uint8_t ypos = 0;
     oled.drawString("Press WAKE", 0, ypos, FONT_SIZE, COLOR_RED);
@@ -44,7 +46,6 @@ void batlog_init(uint8_t cookie) {
     }
 
     if (printlog) {
-      Serial.begin(9600);
       delay(100);
       for (uint16_t eeaddr = 1; eeaddr < 1024; ++eeaddr) {
         Serial.print(eeaddr, DEC);
@@ -62,7 +63,7 @@ void batlog_init(uint8_t cookie) {
 void batlog_tick(uint8_t changes) {
   if (changes >= 2 && BatLog.logbat) {
     if (BatLog.eeaddr < 1024) {
-      uint8_t batvol = Xadow.getBatVol()*10;
+      uint8_t batvol = mcu_get_battery_voltage();
       EEPROM[BatLog.eeaddr] = batvol;
       BatLog.eeaddr += 1;
     }
