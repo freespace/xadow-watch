@@ -5,6 +5,7 @@
 #include "SGL.h"
 #include "SSD1331.h"
 
+#include "defs.h"
 #include "xadow.h"
 
 // These are arduino pin definitions. Note that on leonardo
@@ -21,6 +22,7 @@
 
 #define SLEEP_TIME_MS       (250)
 
+
 SSD1331 oled = SSD1331(cs, dc, mosi, sclk);
 
 char *test_menu[] = {"hello", "world", "here be", "dragons", NULL};
@@ -28,8 +30,14 @@ char *test_menu[] = {"hello", "world", "here be", "dragons", NULL};
 char _sbuf[256];
 char _sbuf2[64];
 
-uint16_t now = 0;
-uint16_t checkpoint;
+millis_t now = 0;
+millis_t checkpoint;
+
+typedef enum {
+  OK,
+  ERROR,
+  ERROR_SYNC_TIMEOUT,
+};
 
 typedef enum {
   SCREEN_WATCH,
@@ -120,7 +128,7 @@ void loop() {
   }
 
 
-  uint16_t t = millis();
+  millis_t t = millis();
   now += t - checkpoint;
   checkpoint = t;
 }
