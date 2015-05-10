@@ -29,11 +29,11 @@ void batlog_init(uint8_t cookie) {
     oled.drawString("to print batlog", 0, ypos, FONT_SIZE, COLOR_RED);
     ypos += LINE_HEIGHT;
 
-    uint16_t startt = millis();
+    millis_t startt = millis();
     uint8_t printlog = 1;
 
     while(digitalRead(10) == HIGH) {
-      uint16_t diff = millis() - startt;
+      millis_delta_t diff = millis() - startt;
       if (diff> 3000) {
         printlog = 0;
         break;
