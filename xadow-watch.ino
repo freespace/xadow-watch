@@ -22,6 +22,7 @@
 
 #define SLEEP_TIME_MS       (250)
 
+#define REDRAW_FLAG         (0x80)
 
 SSD1331 oled = SSD1331(cs, dc, mosi, sclk);
 
@@ -60,7 +61,7 @@ void setup() {
   menu_init();
   status_init();
   watch_init(now);
-  batlog_init(0x33);
+  batlog_init(0x00);
   sync_init();
 
   oled.fillScreen(COLOR_BLACK);
@@ -114,11 +115,12 @@ void loop() {
   if (nextscreen != currentScreen) {
     oled.fillScreen(COLOR_BLACK);
     currentScreen = nextscreen;
+    changes |= REDRAW_FLAG;
   }
 
   switch(nextscreen) {
     case SCREEN_STATUS:
-      status_show();
+      status_show(changes);
       delay(3000);
       break;
 
