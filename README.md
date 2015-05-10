@@ -11,6 +11,9 @@ Additionally to compile this project in Arduino 1.6.x you will need to
 install the `seeeduino` vendor files in the `v1.6.3` directory in
 [Files_For_Seeed_Main_Board](https://github.com/freespace/Files_For_Seeed_Main_Board).
 
+Battery logging will reduce run time by around 20 minutes due to use of
+ADC.
+
 # Module API
 
 There is an informal module C API which is as follows:
