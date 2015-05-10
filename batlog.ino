@@ -13,6 +13,7 @@ void batlog_init(uint8_t cookie) {
   BatLog.eeaddr = 1;
 
   if (EEPROM[0] != cookie) {
+    oled.drawString("Making new batlog", 0, 0, FONT_SIZE, COLOR_RED);
     EEPROM[0] = cookie;
     // filled the log with 0xFF so we know later when the log stops.
     for (uint16_t addr = 1; addr < 1024; ++addr) {
