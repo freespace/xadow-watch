@@ -1,12 +1,20 @@
 #define WATCH_COLOR        (COLOR_BLUE)
 
 typedef struct {
-  uint16_t next_second_millis;
+  millis_t next_second_millis;
   uint8_t seconds;
   uint8_t minutes;
   uint8_t hours;
   uint8_t month;
   uint8_t day;
+
+  uint16_t year;
+  // set to 1 if year is a leap year, 0 otherwise
+  uint8_t leapyear;
+
+  // set this when we need to redraw everything regardless of what
+  // watch_tick returns.
+  uint8_t needs_redraw;
 } Watch_t;
 
 uint8_t _watch_days_per_month[] = {
@@ -26,8 +34,9 @@ uint8_t _watch_days_per_month[] = {
 
 Watch_t Watch = {0};
 
-void watch_init(uint16_t now) {
+void watch_init(millis_t now) {
   Watch.next_second_millis = now;
+  Watch.needs_redraw = 1;
 }
 
 /**
@@ -42,12 +51,7 @@ If 0 is passed in, nothing happens.
 void watch_show(uint8_t changes) {
   if (changes == 0) return;
 
-  uint8_t seconds = Watch.seconds;
-  uint8_t minutes = Watch.minutes;
-  uint8_t hours = Watch.hours;
-  uint8_t day = Watch.day;
-  uint8_t month = Watch.month;
-
+#define W     Watch
   uint8_t xpos = 0, ypos = 0;
 
   uint8_t toclear;
@@ -65,11 +69,28 @@ void watch_show(uint8_t changes) {
        break;
   }
 
-  uint8_t clearwidth = RGB_OLED_WIDTH*toclear/8;
-  oled.clearWindow(RGB_OLED_WIDTH-clearwidth, ypos, RGB_OLED_WIDTH, FONT_Y*2);
+  if (W.needs_redraw) toclear = 8;
 
-  sprintf(_sbuf, "%02d:%02d:%02d", hours, minutes, seconds);
-  oled.drawString(_sbuf, xpos, ypos, FONT_SIZE*2, WATCH_COLOR);
+  uint8_t clearwidth = RGB_OLED_WIDTH*toclear/8;
+  xpos = RGB_OLED_WIDTH - clearwidth;
+  oled.clearWindow(xpos, ypos, xpos+clearwidth, ypos + FONT_Y*2);
+
+  sprintf(_sbuf, "%02d:%02d:%02d", W.hours, W.minutes, W.seconds);
+  oled.drawString(_sbuf, 0, ypos, FONT_SIZE*2, WATCH_COLOR);
+
+  if (changes > 3 || W.needs_redraw) {
+    ypos += LINE_HEIGHT*2;
+
+    oled.clearWindow(0, ypos, RGB_OLED_WIDTH, ypos+FONT_Y);
+
+    sprintf(_sbuf, "%04d/%02d/%02d", W.year, W.month, W.day);
+    xpos = RGB_OLED_WIDTH - (8*FONT_X);
+    xpos /= 2;
+    oled.drawString(_sbuf, xpos, ypos, FONT_SIZE, WATCH_COLOR);
+  }
+
+  W.needs_redraw = 0;
+#undef W
 }
 
 /**
@@ -95,56 +116,61 @@ then it is implied that seconds and minutes have also changed.
 Note that this kind of time keeping on the Xadow has an error of about 1000 ppm, which
 is around 30 seconds over 8 hours.
 */
-uint8_t watch_tick (uint16_t now) {
-  int16_t elapsed = now - Watch.next_second_millis;
+uint8_t watch_tick (millis_t now) {
+#define W     Watch
+  millis_delta_t elapsed = now - W.next_second_millis;
 
   if (elapsed > 0) {
-    Watch.next_second_millis += 1000;
-
-    uint8_t seconds = Watch.seconds;
-    uint8_t minutes = Watch.minutes;
-    uint8_t hours = Watch.hours;
-    uint8_t day = Watch.day;
-    uint8_t month = Watch.month;
+    W.next_second_millis += 1000;
 
     uint8_t changes = 1;
 
-    seconds += 1;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes += 1;
+    W.seconds += 1;
+    if (W.seconds >= 60) {
+      W.seconds = 0;
+      W.minutes += 1;
       changes += 1;
     }
 
-    if (minutes >= 60) {
-      minutes = 0;
-      hours += 1;
+    if (W.minutes >= 60) {
+      W.minutes = 0;
+      W.hours += 1;
       changes += 1;
     }
 
-    if (hours >= 24) {
-      hours = 0;
-      day += 1;
+    if (W.hours >= 24) {
+      W.hours = 0;
+      W.day += 1;
       changes += 1;
     }
 
-    if (day >= _watch_days_per_month[month]) {
-      day = 0;
-      month += 1;
+    if (W.day >= _watch_days_per_month[W.month]) {
+      W.day = 0;
+      W.month += 1;
       changes += 1;
     }
 
-    if (month >= 12) {
-      month = 0;
+    if (W.month >= 12) {
+      W.month = 0;
       changes += 1;
     }
-
-    Watch.seconds = seconds;
-    Watch.minutes = minutes;
-    Watch.hours = hours;
-    Watch.day = day;
-    Watch.month = month;
 
     return changes;
   } else return 0;
+#undef W
+}
+
+void watch_set_time(uint8_t hours, uint8_t minutes, uint8_t seconds) {
+  Watch.seconds = seconds;
+  Watch.minutes = minutes;
+  Watch.hours = hours;
+  Watch.needs_redraw = 1;
+}
+
+void watch_set_date(uint16_t year, uint8_t month, uint8_t day, uint8_t leapyear) {
+  Watch.year = year;
+  Watch.month = month;
+  Watch.day = day;
+  Watch.leapyear = leapyear;
+  Watch.needs_redraw = 1;
 }
