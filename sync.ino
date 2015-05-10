@@ -2,9 +2,9 @@
 
 #define SYNC_DELIMITER      ';'
 
-// timeout in milliseconds. If we expect communication and don't see it for
+// timeout in seconds. If we expect communication and don't see it for
 // this long we abort sync
-#define SYNC_SERIAL_TIMEOUT (1*3000)
+#define SYNC_SERIAL_TIMEOUT (3)
 
 typedef struct {
   uint8_t abort;
@@ -16,18 +16,18 @@ void sync_init() {
 }
 
 void sync_abort(char *msg) {
-  Serial.print("SYNC aborted:");
+  Serial.print("ABORT:");
   Serial.println(msg);
 }
 
 int8_t sync_blocking_read() {
   int8_t c;
-  uint16_t startt = millis();
+  millis_t startt = millis();
 
   do {
     c = Serial.read();
-    if (millis() - startt > SYNC_SERIAL_TIMEOUT) {
-      sync_abort("communication timed out");
+    if (millis() - startt > SYNC_SERIAL_TIMEOUT*1000) {
+      sync_abort("read timed out");
       Sync.abort = 1;
       break;
     }
@@ -57,6 +57,7 @@ uint8_t sync_get_word(char *w) {
 int16_t sync_get_int() {
   uint8_t readpos = 0;
   uint8_t c;
+
   do {
     c = sync_blocking_read();
     if (c == SYNC_DELIMITER) break;
@@ -70,6 +71,8 @@ int16_t sync_get_int() {
 /**
  * Checks serial connection for start of sync.
  *
+ * Protocol
+ * ========
  * Sync protocol uses ; as delimiter, and is as follows:
  *
  * The characters SYNC is sent, followed by ;
@@ -86,15 +89,23 @@ int16_t sync_get_int() {
  *
  *    2015;05;03;0;
  *
- * Termination of sync is denoted by END
+ * Responses
+ * =========
+ * At start of SYNC the following will sent:
  *
- *    END;
+ *    SYNC
  *
- * White spaces may be inserted before/after ; and will be ignored. E.g.
+ * When sync data has been processed without error
  *
- *    2015;    05;   03;0
+ *    OK
  *
- * is valid.
+ * is sent.
+ *
+ * If sync is aborted for any reason,
+ *
+ *    ABORT: <reason>
+ *
+ * is sent.
  */ 
 
 #define CHECK_ABORT()     do { if (Sync.abort) return; } while (0);
@@ -103,11 +114,8 @@ void sync_listen() {
   Sync.abort = 0;
   if (Serial.available()) {
     if (sync_get_word("SYNC;") == OK) {
-      Serial.println("SYNC START");
-    } else {
-      sync_abort("SYNC; expected");
-      return;
-    }
+      Serial.println("SYNC");
+    } else return;
 
     uint8_t hours = sync_get_int();
     uint8_t minutes = sync_get_int();
@@ -115,7 +123,16 @@ void sync_listen() {
 
     CHECK_ABORT();
 
-    sprintf(_sbuf, "Time: %02d:%02d:%02d\n", hours, minutes, seconds);
-    Serial.print(_sbuf);
-  } 
+    watch_set_time(hours, minutes, seconds);
+
+    uint16_t year = sync_get_int();
+    uint8_t month = sync_get_int();
+    uint8_t day = sync_get_int();
+    uint8_t isleapyear = sync_get_int();
+
+    CHECK_ABORT();
+
+    watch_set_date(year, month, day, isleapyear);
+    Serial.println("OK");
+  }
 }
