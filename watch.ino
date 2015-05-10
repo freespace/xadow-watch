@@ -43,8 +43,7 @@ void watch_init(millis_t now) {
 This function will draw the watch face. Be sure to call watch_tick()
 to update time keeping!
 
-To redraw the entire watch face, pass in changes = 0xff. Otherwise pass in
-whatever is returned by watch_tick() for optimised update of watch face.
+See README.md for how changes is interpreted.
 
 If 0 is passed in, nothing happens.
 */
@@ -55,6 +54,10 @@ void watch_show(uint8_t changes) {
   uint8_t xpos = 0, ypos = 0;
 
   uint8_t toclear;
+
+  W.needs_redraw |= changes & REDRAW_FLAG;
+  changes &= ~REDRAW_FLAG;
+
   switch(changes) {
      case 1:
        toclear = 2;
