@@ -3,7 +3,7 @@
 void status_init() {
 }
 
-void status_show() {
+void status_show(uint8_t changes) {
   uint8_t ypos = 0;
 
   uint8_t batv = mcu_get_battery_voltage();
