@@ -5,6 +5,9 @@ typedef struct {
 
 BatLog_t BatLog = {0};
 
+// TODO: implement battery life prediction based on batlog, automatically
+// start new log every 10 charge cycles to keep prediction accurate.
+
 /**
  * cookie value is written to EEPROM[0], and used to avoid overwriting
  * existing logs. To start a new log, pass in a new cookie value

@@ -164,6 +164,8 @@ uint8_t watch_tick (millis_t now) {
       changes += 1;
     }
 
+    // TODO: implement handling for leap year
+    // TODO: implement handling for year changes
     if (W.month >= 12) {
       W.month = 0;
       changes += 1;
