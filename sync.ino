@@ -54,7 +54,7 @@ uint8_t sync_get_word(char *w) {
  * Reads serial stream until SYNC_DELIMITER is found or out of space, then
  * uses atoi to convert the string into an integer, returning the result.
  */
-int16_t sync_get_int() {
+int32_t sync_get_int() {
   uint8_t readpos = 0;
   uint8_t c;
 
@@ -65,7 +65,7 @@ int16_t sync_get_int() {
   } while (readpos < sizeof(_sbuf)-1 && Sync.abort == 0);
 
   _sbuf[readpos] = '\0';
-  return atoi(_sbuf);
+  return atol(_sbuf);
 }
 
 /**
