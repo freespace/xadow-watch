@@ -15,6 +15,17 @@ typedef struct {
   // set this when we need to redraw everything regardless of what
   // watch_tick returns.
   uint8_t needs_redraw;
+
+  // this is the number of milliseconds to add to
+  // the standard 1000 when calculating when to increment
+  // seconds. If the watch keeps perfect time, this value would be 0.
+  //
+  // If the watch is running too quick, then make this value positive to slow it
+  // down.
+  //
+  // If the watch is running too slow, then make this value negative to speed it
+  // up.
+  millis_delta_t millis_adjust;
 } Watch_t;
 
 uint8_t _watch_days_per_month[] = {
@@ -124,7 +135,7 @@ uint8_t watch_tick (millis_t now) {
   millis_delta_t elapsed = now - W.next_second_millis;
 
   if (elapsed > 0) {
-    W.next_second_millis += 1000;
+    W.next_second_millis += 1000 + W.millis_adjust;
 
     uint8_t changes = 1;
 
@@ -163,10 +174,11 @@ uint8_t watch_tick (millis_t now) {
 #undef W
 }
 
-void watch_set_time(uint8_t hours, uint8_t minutes, uint8_t seconds) {
+void watch_set_time(uint8_t hours, uint8_t minutes, uint8_t seconds, millis_delta_t millis_adjust) {
   Watch.seconds = seconds;
   Watch.minutes = minutes;
   Watch.hours = hours;
+  Watch.millis_adjust = millis_adjust;
   Watch.needs_redraw = 1;
 }
 

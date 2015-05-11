@@ -37,7 +37,7 @@ int8_t sync_blocking_read() {
 
 /**
  * Looks for the given word in the serial input.
- */ 
+ */
 uint8_t sync_get_word(char *w) {
   char *p = w;
   uint8_t c;
@@ -79,10 +79,11 @@ int16_t sync_get_int() {
  *
  *    SYNC;
  *
- * Then 3 integers separated by ; are sent representing the current hour,
- * minute, and second
+ * Then 4 integers separated by ; are sent representing the current hour,
+ * minute, second, and millis adjust, which is used to adjust the speed of the
+ * watch when using slee+wdt for time keeping.
  *
- *    5;32;22;
+ *    5;32;22;5;
  *
  * Then 4 integers, separated by ; are sent representing the current year,
  * month, and day of month, and whether the current year is a leap year
@@ -106,7 +107,7 @@ int16_t sync_get_int() {
  *    ABORT: <reason>
  *
  * is sent.
- */ 
+ */
 
 #define CHECK_ABORT()     do { if (Sync.abort) return; } while (0);
 
@@ -120,10 +121,11 @@ void sync_listen() {
     uint8_t hours = sync_get_int();
     uint8_t minutes = sync_get_int();
     uint8_t seconds = sync_get_int();
+    millis_delta_t millis_adjust = sync_get_int();
 
     CHECK_ABORT();
 
-    watch_set_time(hours, minutes, seconds);
+    watch_set_time(hours, minutes, seconds, millis_adjust);
 
     uint16_t year = sync_get_int();
     uint8_t month = sync_get_int();

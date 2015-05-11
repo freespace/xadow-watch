@@ -1,6 +1,12 @@
 import serial
 import sys
-ser = serial.Serial(sys.argv[1], 9600);
+try:
+  port, adj = sys.argv[1:]
+except:
+  print "Usage: %s <port> <millis adjusment>"%(sys.argv[0])
+  sys.exit(1)
+
+ser = serial.Serial(port, 9600);
 
 from datetime import datetime
 from calendar import isleap
@@ -16,6 +22,7 @@ parts = [
   now.hour,
   now.minute,
   now.second,
+  int(adj),
   now.year,
   now.month,
   now.day,
