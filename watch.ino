@@ -16,16 +16,21 @@ typedef struct {
   // watch_tick returns.
   uint8_t needs_redraw;
 
-  // this is the number of milliseconds to add to
-  // the standard 1000 when calculating when to increment
-  // seconds. If the watch keeps perfect time, this value would be 0.
+  // This is a milli-second correction that is applied every 1000
+  // seconds, which means it is a part-per-million correction.
   //
-  // If the watch is running too quick, then make this value positive to slow it
-  // down.
+  // If the watch is running fast, then we want to make this positive.
   //
-  // If the watch is running too slow, then make this value negative to speed it
-  // up.
+  // If the watch is running slow, then we want to make this negative.
+  //
+  // If the watch is exactly on time, then it shuold be 0.
   millis_delta_t millis_adjust;
+
+  // number of seconds since we last applied millis_adjust.
+  uint16_t seconds_since_last_adjust;
+
+  uint8_t color;
+
 } Watch_t;
 
 uint8_t _watch_days_per_month[] = {
@@ -48,6 +53,7 @@ Watch_t Watch = {0};
 void watch_init(millis_t now) {
   Watch.next_second_millis = now;
   Watch.needs_redraw = 1;
+  Watch.color = WATCH_COLOR;
 }
 
 /**
@@ -135,7 +141,17 @@ uint8_t watch_tick (millis_t now) {
   millis_delta_t elapsed = now - W.next_second_millis;
 
   if (elapsed > 0) {
-    W.next_second_millis += 1000 + W.millis_adjust;
+    W.next_second_millis += 1000;
+    W.seconds_since_last_adjust += 1;
+
+    // apply millis_adjust every 1,000,000 milliseconds
+    if (W.seconds_since_last_adjust >= 1000) {
+      W.next_second_millis += W.millis_adjust;
+      W.seconds_since_last_adjust = 0;
+
+      if (W.color == COLOR_BLUE) W.color = COLOR_RED;
+      else W.color = COLOR_BLUE;
+    }
 
     uint8_t changes = 1;
 
@@ -181,6 +197,7 @@ void watch_set_time(uint8_t hours, uint8_t minutes, uint8_t seconds, millis_delt
   Watch.minutes = minutes;
   Watch.hours = hours;
   Watch.millis_adjust = millis_adjust;
+  Watch.seconds_since_last_adjust = 0;
   Watch.needs_redraw = 1;
 }
 
