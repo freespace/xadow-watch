@@ -19,7 +19,13 @@ typedef struct {
   // This is a milli-second correction that is applied every 1000
   // seconds, which means it is a part-per-million correction.
   //
-  // If the watch is running fast, then we want to make this positive.
+  // This adjustment increases or decreases the time to the next second when
+  // it is applied, and has affect for 1 second. If it is say, 1000, then
+  // when it is applied, the watch will take another 1000 ms before
+  // advancing the seconds counter.
+  //
+  // If the watch is running fast, then we want to make this positive to make
+  // the watch take longer to increment a second.
   //
   // If the watch is running slow, then we want to make this negative.
   //
@@ -29,7 +35,7 @@ typedef struct {
   // number of seconds since we last applied millis_adjust.
   uint16_t seconds_since_last_adjust;
 
-  uint8_t color;
+  uint16_t color;
 
 } Watch_t;
 
@@ -96,7 +102,7 @@ void watch_show(uint8_t changes) {
   oled.clearWindow(xpos, ypos, xpos+clearwidth, ypos + FONT_Y*2);
 
   sprintf(_sbuf, "%02d:%02d:%02d", W.hours, W.minutes, W.seconds);
-  oled.drawString(_sbuf, 0, ypos, FONT_SIZE*2, WATCH_COLOR);
+  oled.drawString(_sbuf, 0, ypos, FONT_SIZE*2, W.color);
 
   if (changes > 3 || W.needs_redraw) {
     ypos += LINE_HEIGHT*2;
@@ -106,7 +112,7 @@ void watch_show(uint8_t changes) {
     sprintf(_sbuf, "%04d/%02d/%02d", W.year, W.month, W.day);
     xpos = RGB_OLED_WIDTH - (8*FONT_X);
     xpos /= 2;
-    oled.drawString(_sbuf, xpos, ypos, FONT_SIZE, WATCH_COLOR);
+    oled.drawString(_sbuf, xpos, ypos, FONT_SIZE, W.color);
   }
 
   W.needs_redraw = 0;
