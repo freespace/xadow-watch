@@ -58,10 +58,13 @@ void setup() {
   animation_boot();
   oled.fillScreen(COLOR_BLACK);
 
+  buzzer_init();
+  buzzer_jingle(0);
+
   menu_init();
   status_init();
   watch_init(now);
-  batlog_init(0x00);
+  batlog_init(0x01);
   sync_init();
 
   oled.fillScreen(COLOR_BLACK);
@@ -76,6 +79,7 @@ void setup() {
 
   now = 0;
   checkpoint = millis();
+
 }
 
 void loop() {
