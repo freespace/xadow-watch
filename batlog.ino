@@ -1,6 +1,8 @@
 typedef struct {
   uint8_t logbat;
   uint16_t eeaddr;
+  uint8_t interval;
+  uint8_t min_count;
 } BatLog_t;
 
 BatLog_t BatLog = {0};
@@ -11,9 +13,14 @@ BatLog_t BatLog = {0};
 /**
  * cookie value is written to EEPROM[0], and used to avoid overwriting
  * existing logs. To start a new log, pass in a new cookie value
+ *
+ * interval is logging interval in minutes. When using a 200 mAh battery
+ * battery life exceeds the 1024 minutes, and therefore needs to be reduced.
+ * If this value is 0 it is equivalent to setting it to 1.
  */
-void batlog_init(uint8_t cookie) {
+void batlog_init(uint8_t cookie, uint8_t interval) {
   BatLog.eeaddr = 1;
+  BatLog.min_count = 0;
 
   if (EEPROM[0] != cookie) {
     oled.drawString("Making new batlog", 0, 0, FONT_SIZE, COLOR_RED);
@@ -68,10 +75,16 @@ void batlog_init(uint8_t cookie) {
 
 void batlog_tick(uint8_t changes) {
   if (changes >= 2 && BatLog.logbat) {
-    if (BatLog.eeaddr < 1024) {
+    BatLog.min_count += 1;
+    uint8_t shouldlog = BatLog.min_count >= BatLog.interval;
+    if (BatLog.eeaddr >= 1024) shouldlog = 0;
+
+    if (shouldlog) {
       uint8_t batvol = mcu_get_battery_voltage();
       EEPROM[BatLog.eeaddr] = batvol;
+
       BatLog.eeaddr += 1;
+      BatLog.min_count = 0;
     }
   }
 }
