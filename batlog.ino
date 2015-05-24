@@ -11,7 +11,7 @@ BatLog_t BatLog = {0};
 /**
  * cookie value is written to EEPROM[0], and used to avoid overwriting
  * existing logs. To start a new log, pass in a new cookie value
- */ 
+ */
 void batlog_init(uint8_t cookie) {
   BatLog.eeaddr = 1;
 
@@ -35,6 +35,8 @@ void batlog_init(uint8_t cookie) {
 
     millis_t startt = millis();
     uint8_t printlog = 1;
+
+    Serial.println("Press WAKE to print batlog");
 
     while(digitalRead(10) == HIGH) {
       millis_delta_t diff = millis() - startt;
