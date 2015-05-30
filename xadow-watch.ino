@@ -58,13 +58,18 @@ void setup() {
   animation_boot();
   oled.fillScreen(COLOR_BLACK);
 
+  button_init();
+
   buzzer_init();
   buzzer_jingle(0);
 
   menu_init();
   status_init();
   watch_init(now);
-  batlog_init(0x01);
+
+  // log battery once every 5 minutes, giving us >80 hr battery log
+  batlog_init(0x00, 5);
+
   sync_init();
 
   oled.fillScreen(COLOR_BLACK);
@@ -73,13 +78,14 @@ void setup() {
 
   oled.drawString("Disconnect USB", 0, 0, FONT_SIZE, COLOR_RED);
   oled.drawString("then press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
-  while(digitalRead(10) == HIGH);;
+
+  button_wait(BUTTON_WAKE);
+  buzzer_sound(BUZZER_SOUND_CHIME);
 
   mcu_reduce_features();
 
   now = 0;
   checkpoint = millis();
-
 }
 
 void loop() {
@@ -106,11 +112,14 @@ void loop() {
   power_spi_enable();
   uint8_t changes = watch_tick(now);
 
+  if (changes >= 3) buzzer_sound(BUZZER_SOUND_CHIME);
+
   batlog_tick(changes);
 
   Screen nextscreen = currentScreen;
 
-  if (digitalRead(10) == LOW) {
+  if (button_pressed(BUTTON_WAKE)) {
+    buzzer_sound(BUZZER_SOUND_BUTTON);
     nextscreen = SCREEN_STATUS;
   } else {
     nextscreen = SCREEN_WATCH;
