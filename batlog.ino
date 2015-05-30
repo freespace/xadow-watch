@@ -21,6 +21,7 @@ BatLog_t BatLog = {0};
 void batlog_init(uint8_t cookie, uint8_t interval) {
   BatLog.eeaddr = 1;
   BatLog.min_count = 0;
+  BatLog.interval = interval;
 
   if (EEPROM[0] != cookie) {
     oled.drawString("Making new batlog", 0, 0, FONT_SIZE, COLOR_RED);
