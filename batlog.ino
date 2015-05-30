@@ -46,7 +46,7 @@ void batlog_init(uint8_t cookie, uint8_t interval) {
 
     Serial.println("Press WAKE to print batlog");
 
-    while(digitalRead(10) == HIGH) {
+    while(button_pressed(BUTTON_WAKE) == 0) {
       millis_delta_t diff = millis() - startt;
       if (diff> 3000) {
         printlog = 0;
