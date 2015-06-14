@@ -1,4 +1,4 @@
-void animation_boot () {
+void animations_boot () {
   char *sequence [] = {
     "[    ]",
     "[|   ]",

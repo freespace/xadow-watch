@@ -51,7 +51,7 @@ void setup() {
   buzzer_init();
   oled.init();
 
-  animation_boot();
+  animations_boot();
 
   buzzer_jingle(0);
   return;
