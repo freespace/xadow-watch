@@ -4,7 +4,7 @@ Run time is currently approximately 8 hours. This depends however on
 using my modified versions of the Seeedstudio libraries:
 
 * [`Xadow_mainboard`](https://github.com/freespace/Xadow_MainBoard)
-* [`RGB_OLED_SSD1331`](https://github.com/freespace/RGB_OLED_SSD1331)
+* [`SSD1306`](https://github.com/freespace/SSD1306)
 * [`SGL`](https://github.com/freespace/SGL)
 
 Additionally to compile this project in Arduino 1.6.x you will need to
