@@ -97,8 +97,8 @@ void watch_show(uint8_t changes) {
 
   if (W.needs_redraw) toclear = 8;
 
-  uint8_t clearwidth = RGB_OLED_WIDTH*toclear/8;
-  xpos = RGB_OLED_WIDTH - clearwidth;
+  uint8_t clearwidth = SCREEN_WIDTH*toclear/8;
+  xpos = SCREEN_WIDTH - clearwidth;
   oled.clearWindow(xpos, ypos, xpos+clearwidth, ypos + FONT_Y*2);
 
   sprintf(_sbuf, "%02d:%02d:%02d", W.hours, W.minutes, W.seconds);
@@ -107,10 +107,10 @@ void watch_show(uint8_t changes) {
   if (changes > 3 || W.needs_redraw) {
     ypos += LINE_HEIGHT*2;
 
-    oled.clearWindow(0, ypos, RGB_OLED_WIDTH, ypos+FONT_Y);
+    oled.clearWindow(0, ypos, SCREEN_WIDTH, ypos+FONT_Y);
 
     sprintf(_sbuf, "%04d/%02d/%02d", W.year, W.month, W.day);
-    xpos = RGB_OLED_WIDTH - (8*FONT_X);
+    xpos = SCREEN_WIDTH - (8*FONT_X);
     xpos /= 2;
     oled.drawString(_sbuf, xpos, ypos, FONT_SIZE, W.color);
   }
