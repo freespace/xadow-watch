@@ -1,6 +1,6 @@
 void mcu_reduce_features() {
   power_usart1_disable();
-  power_twi_disable();
+  power_spi_disable();
   power_adc_disable();
   power_timer1_disable();
   power_timer2_disable();
