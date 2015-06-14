@@ -9,12 +9,18 @@ void animation_boot () {
     NULL
   };
 
+  oled.setBufferRegion(0, 16, 128, 32);
+  uint8_t w = 128, h=32;
+
   for (uint8_t idx = 0; sequence[idx] != NULL; ++idx) {
     if (sequence[idx+1] == NULL) {
-      oled.drawString(sequence[idx-1], (RGB_OLED_WIDTH-FONT_X*5)/2, RGB_OLED_HEIGHT/2-FONT_Y/2, 1, COLOR_BLACK);
+      oled.drawString(sequence[idx-1], (w*5)/2, h/2-FONT_Y/2, 1, COLOR_BLACK);
+      oled.uploadBuffer();
     }
 
-    oled.drawString(sequence[idx], (RGB_OLED_WIDTH-FONT_X*5)/2, RGB_OLED_HEIGHT/2-FONT_Y/2, 1, COLOR_BLUE);
+    oled.clearBuffer();
+    oled.drawString(sequence[idx], (w-FONT_X*5)/2, h/2-FONT_Y/2, 1, COLOR_BLUE);
+    oled.uploadBuffer();
     delay(200);
   }
   delay(1000);
