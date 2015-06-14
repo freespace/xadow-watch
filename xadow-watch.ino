@@ -3,18 +3,10 @@
 #include <EEPROM.h>
 
 #include "SGL.h"
-#include "SSD1331.h"
+#include "SSD1306.h"
 
 #include "defs.h"
 #include "xadow.h"
-
-// These are arduino pin definitions. Note that on leonardo
-// boards MOSI and sclk cannot be directly used, and hence
-// D16 and D15 is a thing only with the Xadow board
-#define cs                  (A5)
-#define dc                  (3)
-#define mosi                (16)
-#define sclk                (15)
 
 #define LEFT_GUTTER_SIZE    (FONT_X)
 #define FONT_SIZE           (1)
@@ -24,7 +16,10 @@
 
 #define REDRAW_FLAG         (0x80)
 
-SSD1331 oled = SSD1331(cs, dc, mosi, sclk);
+#define SCREEN_WIDTH        (128)
+#define SCREEN_HEIGHT       (64)
+
+SSD1306 oled = SSD1306(0x3C);
 
 char *test_menu[] = {"hello", "world", "here be", "dragons", NULL};
 
@@ -53,9 +48,13 @@ void setup() {
 
   Xadow.init();
 
+  buzzer_init();
   oled.init();
-  oled.fillScreen(COLOR_BLACK);
+
   animation_boot();
+
+  buzzer_jingle(0);
+  return;
   oled.fillScreen(COLOR_BLACK);
 
   button_init();
@@ -89,7 +88,8 @@ void setup() {
 }
 
 void loop() {
-  power_spi_disable();
+  return;
+  power_twi_disable();
 
   if (Xadow.getChrgState() == NOCHARGE) {
     // when on battery power disable usb and uart and
@@ -109,7 +109,7 @@ void loop() {
     delay(SLEEP_TIME_MS);
   }
 
-  power_spi_enable();
+  power_twi_enable();
   uint8_t changes = watch_tick(now);
 
   if (changes >= 3) buzzer_sound(BUZZER_SOUND_CHIME);
