@@ -44,3 +44,8 @@ changed.
 
 The MSB of the change field is expected to never be used. If it is set,
 it signals to the module that it should complete redraw its interface.
+
+# Build Notes
+
+The code *must* be built with processor ATMEGA32U4, otherwise various power_*
+symbol will be undefined.
