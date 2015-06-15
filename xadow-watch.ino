@@ -53,8 +53,6 @@ void setup() {
 
   animations_boot();
 
-  buzzer_jingle(0);
-  return;
   oled.fillScreen(COLOR_BLACK);
 
   button_init();
@@ -63,11 +61,13 @@ void setup() {
   buzzer_jingle(0);
 
   menu_init();
+
   status_init();
+
   watch_init(now);
 
   // log battery once every 5 minutes, giving us >80 hr battery log
-  batlog_init(0x00, 5);
+  batlog_init(0x03, 5);
 
   sync_init();
 
@@ -75,6 +75,7 @@ void setup() {
 
   currentScreen = SCREEN_OTHER;
 
+  oled.setBufferRegion(SSD1306_REGION_MID);
   oled.drawString("Disconnect USB", 0, 0, FONT_SIZE, COLOR_RED);
   oled.drawString("then press WAKE", 0, LINE_HEIGHT, FONT_SIZE, COLOR_RED);
 
@@ -88,7 +89,6 @@ void setup() {
 }
 
 void loop() {
-  return;
   power_twi_disable();
 
   if (Xadow.getChrgState() == NOCHARGE) {
