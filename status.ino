@@ -8,6 +8,7 @@ void status_show(uint8_t changes) {
 
   uint8_t batv = mcu_get_battery_voltage();
   sprintf(_sbuf, "Battery: %d.%dV", batv/10, batv%10);
+  oled.setBufferRegion(SSD1306_REGION_MID);
   oled.drawString(_sbuf, 0, ypos, FONT_SIZE, STATUS_COLOR);
 
   ypos += LINE_HEIGHT;
