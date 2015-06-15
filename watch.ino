@@ -74,45 +74,29 @@ void watch_show(uint8_t changes) {
   if (changes == 0) return;
 
 #define W     Watch
-  uint8_t xpos = 0, ypos = 0;
-
-  uint8_t toclear;
 
   W.needs_redraw |= changes & REDRAW_FLAG;
   changes &= ~REDRAW_FLAG;
 
-  switch(changes) {
-     case 1:
-       toclear = 2;
-       break;
-     case 2:
-       toclear = 5;
-       break;
-     case 0xFF:
-     case 3:
-     default:
-       toclear = 8;
-       break;
-  }
+  // not using FONT_Y and FONT_SIZE etc b/c I have to make sure h is a
+  // multiple of 8!
+  uint8_t h = 16;
+  uint8_t ypos = 16;
+  uint8_t xpos = (SCREEN_WIDTH - FONT_SPACE*8*2)/2;
 
-  if (W.needs_redraw) toclear = 8;
-
-  uint8_t clearwidth = SCREEN_WIDTH*toclear/8;
-  xpos = SCREEN_WIDTH - clearwidth;
-  oled.clearWindow(xpos, ypos, xpos+clearwidth, ypos + FONT_Y*2);
+  oled.setBufferRegion(0, ypos, SCREEN_WIDTH, h);
 
   sprintf(_sbuf, "%02d:%02d:%02d", W.hours, W.minutes, W.seconds);
-  oled.drawString(_sbuf, 0, ypos, FONT_SIZE*2, W.color);
+
+  oled.drawString(_sbuf, xpos, 0, FONT_SIZE*2, W.color);
 
   if (changes > 3 || W.needs_redraw) {
-    ypos += LINE_HEIGHT*2;
+    oled.setBufferRegion(0, ypos+h+8, SCREEN_WIDTH, FONT_Y*2);
 
-    oled.clearWindow(0, ypos, SCREEN_WIDTH, ypos+FONT_Y);
-
-    sprintf(_sbuf, "%04d/%02d/%02d", W.year, W.month, W.day);
-    xpos = SCREEN_WIDTH - (8*FONT_X);
+    sprintf(_sbuf, "%02d/%02d", W.day, W.month);
+    xpos = SCREEN_WIDTH - (5*FONT_SPACE*2);
     xpos /= 2;
-    oled.drawString(_sbuf, xpos, ypos, FONT_SIZE, W.color);
+    oled.drawString(_sbuf, xpos, ypos, FONT_SIZE*2, W.color);
   }
 
   W.needs_redraw = 0;
