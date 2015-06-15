@@ -23,8 +23,11 @@ void batlog_init(uint8_t cookie, uint8_t interval) {
   BatLog.min_count = 0;
   BatLog.interval = interval;
 
+  oled.setBufferRegion(SSD1306_REGION_TOP);
+
   if (EEPROM[0] != cookie) {
     oled.drawString("Making new batlog", 0, 0, FONT_SIZE, COLOR_RED);
+
     EEPROM[0] = cookie;
     // filled the log with 0xFF so we know later when the log stops.
     for (uint16_t addr = 1; addr < 1024; ++addr) {
@@ -52,9 +55,10 @@ void batlog_init(uint8_t cookie, uint8_t interval) {
         printlog = 0;
         break;
       } else {
-        oled.drawString("\x80", 0, ypos, FONT_SIZE, COLOR_BLACK);
+        oled.b_drawString("\x80", 0, ypos, FONT_SIZE, COLOR_BLACK);
         sprintf(_sbuf, "%d", 3-diff/1000);
-        oled.drawString(_sbuf, 0, ypos, FONT_SIZE, COLOR_RED);
+        oled.b_drawString(_sbuf, 0, ypos, FONT_SIZE, COLOR_RED);
+        oled.uploadBuffer();
         delay(250);
       }
     }
